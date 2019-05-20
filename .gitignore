@@ -9,6 +9,7 @@ coverage/
 run/
 test.js
 .vscode/
+app/public/
 config/config.default.js
 .DS_Store
 *.sw*
