@@ -11,6 +11,7 @@ test.js
 .vscode/
 app/public/
 config/config.default.js
+app/extend/helper.js
 .DS_Store
 *.sw*
 *.un~
