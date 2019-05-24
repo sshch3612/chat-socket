@@ -12,9 +12,10 @@ class UserService extends Service {
 
   async createUser(option) {
     this.ctx.logger.info("创建user");
-    const { username, password, phone, wxNumber } = option;
+    const { username, password, phone, wxNumber, avatar } = option;
     const result = await this.ctx.model.User.create({
       username: username || null,
+      avatar: avatar || null,
       password: password || null,
       // qqCode:qqCode || null,
       phone: phone || null,
@@ -24,18 +25,21 @@ class UserService extends Service {
     return result;
   }
   async updateUser(option, projection = {}) {
-    const result = await this.ctx.model.User.update(option, {
-      $set: projection
-    });
-    this.ctx.logger.info(result, "结果");
-    return result;3
+    try {
+      const result = await this.ctx.model.User.update(option, {
+        $set: projection
+      });  
+      return result;
+    } catch (error) {
+      console.log(error,4444);   
+    }
   }
 
-  async friendsUser(option, projection = {friends:1,_id:0}) {
-    const fromUser = await this.ctx.model.User.findOne(option,projection);
+  async friendsUser(option, projection = { friends: 1, _id: 0 }) {
+    const fromUser = await this.ctx.model.User.findOne(option, projection);
     const result = [];
-    for await (const item of Object.keys(fromUser.friends)){
-      const oneUser =  await this.getUser({username:item},{username:1});
+    for await (const item of Object.keys(fromUser.friends)) {
+      const oneUser = await this.getUser({ username: item }, { username: 1 });
       result.push(oneUser);
     }
     return result;

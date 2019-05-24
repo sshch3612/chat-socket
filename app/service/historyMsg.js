@@ -4,7 +4,16 @@ const Service = require("egg").Service;
 
 class HistoryMsgService extends Service {
   async create(option) {
-    const { from, to, message, date, unreadmessage, isread, type } = option;
+    const {
+      from,
+      to,
+      message,
+      date,
+      unreadmessage,
+      isread,
+      type,
+      chatid
+    } = option;
     const result = await this.ctx.model.HistoryMsg.create({
       //model 注意: 第一个字母一定要大写
       from: from,
@@ -12,7 +21,8 @@ class HistoryMsgService extends Service {
       message: message,
       date: date,
       isread: isread,
-      type: type
+      type: type,
+      chatid: chatid
       // unreadmessage: unreadmessage
     });
     return result;
@@ -20,8 +30,10 @@ class HistoryMsgService extends Service {
 
   async msgfind(option) {
     const { from, to } = option;
+    const chatId = [from, to].sort().join("");
     const result = await this.ctx.model.HistoryMsg.find({
-      $or: [{ from: from, to: to }, { from: to, to: from }]
+      // $or: [{ from: from, to: to }, { from: to, to: from }]
+      chatid: chatId
     }).sort({ date: 1 });
 
     return result;
@@ -31,7 +43,7 @@ class HistoryMsgService extends Service {
     // const result = await this.ctx.model.OfflineMsg.find({'userId'})
     const { from, to } = option;
     const result = await this.ctx.model.HistoryMsg.find(
-      { from: from, to: to, isread: 1 },
+      { from: from, to: to, isread: { [to]: 1 } },
       { isread: 1, _id: 0 }
     ).count();
 
@@ -40,12 +52,26 @@ class HistoryMsgService extends Service {
 
   async userlistfind(option) {
     // const result = await this.ctx.model.OfflineMsg.find({'userId'})
-    const { to } = option;
+    const { from } = option;
+    //获取用户聊天列表users
+    const userList = await this.ctx.model.User.findOne(
+      {
+        username: from
+      },
+      { friends: 1, _id: 0 }
+    );
+    const friends = userList.friends;
+    const chatidResult = [];
+    Object.values(friends).forEach(item => {
+      if (item.exist === 1) {
+        chatidResult.push(item.chatid);
+      }
+    });
+
     const result = await this.ctx.model.HistoryMsg.aggregate([
       {
         $match: {
-          to: to
-          // isread: 1
+          chatid: { $in: chatidResult }
         }
       },
       {
@@ -55,17 +81,18 @@ class HistoryMsgService extends Service {
       },
       {
         $group: {
-          _id: "$from",
-          username: { $first: "$from" },
+          _id: "$chatid",
+          username: { $first: "$chatid" },
           message: { $first: "$message" },
           type: { $first: "$type" },
           date: { $first: "$date" },
-          count: { $sum: "$isread" }
+          count: { $sum: `$isread.${from}` }
         }
       }
     ]);
-
-    return result;
+    return result.map(item => {
+      return { ...item, username: item.username.replace(from, "") };
+    });
   }
 
   async updateUnread(option) {
@@ -75,13 +102,12 @@ class HistoryMsgService extends Service {
       const result = await this.ctx.model.HistoryMsg.find({
         from: to,
         to: from,
-        isread: 1
+        isread: { [from]: 1 }
       });
-      console.log(result, 88888);
       result.forEach(async item => {
         await this.ctx.model.HistoryMsg.update(
           { _id: item._id },
-          { $set: { isread: 0 } }
+          { $set: { isread: { [from]: 0 } } }
         );
       });
     } catch (error) {

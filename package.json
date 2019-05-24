@@ -21,6 +21,9 @@
     "eslint": "^4.11.0",
     "eslint-config-egg": "^6.0.0",
     "js-md5": "^0.7.3",
+    "qiniu": "^7.2.1",
+    "request": "^2.88.0",
+    "uuid": "^3.3.2",
     "webstorm-disable-index": "^1.2.0"
   },
   "engines": {

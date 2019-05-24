@@ -5,6 +5,7 @@ module.exports = app => {
   const Schema = mongoose.Schema;
   const dataSchema = new Schema({
     username: String,
+    avatar: String,
     password: String,
     qqCode: String,
     phone: String,

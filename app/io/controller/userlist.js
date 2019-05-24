@@ -11,13 +11,14 @@ class UserlistController extends Controller {
     // await app.redis.del('userInfo');
     // const result = await app.redis.hvals("userInfo");
     const result = await this.ctx.service.historyMsg.userlistfind({
-      to: reqdata["from"]
+      from: reqdata["from"]
     });
     await ctx.socket.nsp.sockets[socketId].emit("userlist", {
       message: result
     }); //发给指定的用户
   }
 
+  //获取用户通讯录
   async friendsUser() {
     const { ctx, app } = this;
     const { username } = ctx.args[0];

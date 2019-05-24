@@ -22,7 +22,7 @@ class SingleChatController extends Controller {
       //给From发送回包
       await ctx.socket.nsp.sockets[socketId].emit("singlechat", {
         from: reqdata["from"],
-        type: reqdata['type'],
+        type: reqdata["type"],
         message: reqdata["message"],
         date: reqdata["date"]
       });
@@ -51,7 +51,12 @@ class SingleChatController extends Controller {
       let msgType = null;
       switch (userStatus) {
         case 1:
-          msgType = "singlechat";
+          // msgType = "singlechat";
+          if (toUser.room && toUser.room === reqdata["from"]) {
+            msgType = "singlechat";
+          } else {
+            msgType = "singlechatOut";
+          }
           break;
         case 2:
           // sendMsg = "房间外";
@@ -72,7 +77,8 @@ class SingleChatController extends Controller {
 
       // const isOnline = await app.redis.hexists("online", toUser.socketid);
       // console.log(await app.redis.hget("online", toUser.socketid));
-
+      //chatId
+      const chatId = [reqdata["from"], reqdata["to"]].sort().join("");
       if (msgType === "singlechatOut") {
         /*
          *1存储singlechatOut 消息
@@ -82,11 +88,12 @@ class SingleChatController extends Controller {
          *客户端主动删除所有离线消息
          */
         await this.ctx.service.historyMsg.create({
+          chatid: chatId,
           to: reqdata["to"],
           from: reqdata["from"],
           message: reqdata["message"],
-          type: reqdata['type'],
-          isread: 1,
+          type: reqdata["type"],
+          isread: {[reqdata['to']]: 1},
           date: reqdata["date"]
         });
         //获取未读消息数
@@ -94,11 +101,10 @@ class SingleChatController extends Controller {
           from: reqdata["from"],
           to: reqdata["to"]
         });
-        console.log("countcount", count);
         //发送消息 count
         await ctx.socket.nsp.sockets[toUser.socketid].emit("singlechatOut", {
           from: reqdata["from"],
-          type: reqdata['type'],
+          type: reqdata["type"],
           message: reqdata["message"],
           count: count,
           date: reqdata["date"]
@@ -107,16 +113,17 @@ class SingleChatController extends Controller {
       } else {
         await ctx.socket.nsp.sockets[toUser.socketid].emit("singlechat", {
           from: reqdata["from"],
-          type: reqdata['type'],
+          type: reqdata["type"],
           message: reqdata["message"],
           date: reqdata["date"]
         });
         //存储所有聊天消息
         this.ctx.service.historyMsg.create({
+          chatid: chatId,
           from: reqdata["from"],
           to: reqdata["to"],
-          type: reqdata['type'],
-          isread: 0,
+          type: reqdata["type"],
+          isread: {[reqdata['to']]:0},
           message: reqdata["message"],
           date: reqdata["date"]
         });

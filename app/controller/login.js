@@ -2,7 +2,6 @@
 
 const Controller = require("egg").Controller;
 
-const secret = "fewfewgew";
 class LoginController extends Controller {
   async signout() {
     const { request, response, locals, helper } = this.ctx;
@@ -96,7 +95,6 @@ class LoginController extends Controller {
   async getUser() {
     const { request, response, locals, service } = this.ctx;
     const { username } = locals;
-    console.log(request.method, 99999);
     let user = null;
     if (request.method === "POST") {
       const { touser } = request.body;
@@ -114,6 +112,34 @@ class LoginController extends Controller {
       code: 200,
       message: user
     };
+  }
+
+  async updateAvatar() {
+    const { request, response, locals, service, helper } = this.ctx;
+    const { username } = locals;
+    const { avatar } = request.body;
+    try {
+      const avatatUrl = await helper.fileUpload("/user/avatar", avatar);
+      await service.user.updateUser(
+        {
+          username: username
+        },
+        {
+          avatar: avatatUrl
+        }
+      );
+      const user = await service.user.getUser(
+        { username: username },
+        { password: 0, _id: 0 }
+      );
+      response.body = {
+        code: 200,
+        message: user
+      };
+      // const result = await helper.fileUpload('/user/avatar',avatar);
+    } catch (error) {
+      console.log(error);
+    }
   }
 }
 

@@ -10,7 +10,8 @@ module.exports = app => {
     type: String,
     date: String,
     // unreadmessage:String,
-    isread: Number
+    isread: JSON,
+    chatid: String
   });
 
   return mongoose.model("historyMsg", dataSchema, "historyMsg");

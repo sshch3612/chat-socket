@@ -12,14 +12,15 @@ class AddfriendController extends Controller {
       const user = await ctx.service.user.getUser({ username: from });
       if (user) {
         //更新from user-friends表
+        const chatId = [from, to].sort().join("");
         await ctx.service.user.updateUser(
           { username: from },
-          { [`friends.${to}`]: { exist: 1 } }
+          { [`friends.${to}`]: { exist: 1, chatid: chatId } }
         );
         //更新to user-friends表
         await ctx.service.user.updateUser(
           { username: to },
-          { [`friends.${from}`]: { exist: 1 } }
+          { [`friends.${from}`]: { exist: 1, chatid: chatId } }
         );
 
         //给from方发送系统消息通知
@@ -28,14 +29,17 @@ class AddfriendController extends Controller {
         await ctx.socket.nsp.sockets[socketId].emit("singlechatOut", {
           code: 200,
           from: to,
+          type: "text",
           message: messageSys,
           date: dateSys
         });
         //存储系统消息
         this.ctx.service.historyMsg.create({
+          chatid: chatId,
+          type: "text",
           from: to,
           to: from,
-          isread: 1,
+          isread: {[from]:1},
           message: messageSys,
           date: dateSys
         });

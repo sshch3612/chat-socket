@@ -22,6 +22,8 @@ module.exports = app => {
   //用户信息
   router.get("/getUser", controller.login.getUser);
   router.post("/getUser", controller.login.getUser);
+  //头像更新
+  router.post("/updateAvatar", controller.login.updateAvatar);
   // io.of('/').route('ping',     io.controller.chat.ping);
   io.of("/").route("exchange", io.controller.chat.exchange);
   io.of("/").route("message", io.controller.message.message);
