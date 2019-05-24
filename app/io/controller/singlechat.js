@@ -18,12 +18,26 @@ class SingleChatController extends Controller {
 
     //可以做一些业务逻辑
     //发消息,要验证1接受人是否存在 2.两者之间的关系
+    //1.判断消息类型,重置消息
+    let message = null;
+    switch (reqdata["type"]) {
+      case "image":
+        message = await ctx.helper.fileUpload(
+          "/user/message",
+          reqdata["message"]
+        );
+        break;
+      default:
+        message = reqdata["message"];
+        break;
+    }
+
     try {
       //给From发送回包
       await ctx.socket.nsp.sockets[socketId].emit("singlechat", {
         from: reqdata["from"],
         type: reqdata["type"],
-        message: reqdata["message"],
+        message: message,
         date: reqdata["date"]
       });
       //获取接收人的信息,
@@ -91,9 +105,9 @@ class SingleChatController extends Controller {
           chatid: chatId,
           to: reqdata["to"],
           from: reqdata["from"],
-          message: reqdata["message"],
+          message: message,
           type: reqdata["type"],
-          isread: {[reqdata['to']]: 1},
+          isread: { [reqdata["to"]]: 1 },
           date: reqdata["date"]
         });
         //获取未读消息数
@@ -105,7 +119,7 @@ class SingleChatController extends Controller {
         await ctx.socket.nsp.sockets[toUser.socketid].emit("singlechatOut", {
           from: reqdata["from"],
           type: reqdata["type"],
-          message: reqdata["message"],
+          message: message,
           count: count,
           date: reqdata["date"]
         });
@@ -114,7 +128,7 @@ class SingleChatController extends Controller {
         await ctx.socket.nsp.sockets[toUser.socketid].emit("singlechat", {
           from: reqdata["from"],
           type: reqdata["type"],
-          message: reqdata["message"],
+          message: message,
           date: reqdata["date"]
         });
         //存储所有聊天消息
@@ -123,8 +137,8 @@ class SingleChatController extends Controller {
           from: reqdata["from"],
           to: reqdata["to"],
           type: reqdata["type"],
-          isread: {[reqdata['to']]:0},
-          message: reqdata["message"],
+          isread: { [reqdata["to"]]: 0 },
+          message: message,
           date: reqdata["date"]
         });
       }
