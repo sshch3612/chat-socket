@@ -22,10 +22,9 @@ class AddfriendController extends Controller {
         { username: from },
         { _id: 0, friends: 1 }
       );
-      if (fromuser.friends[to]) {
+      if (from.friends && fromuser.friends[to]) {
         throw "该用户已是你的好友";
       }
-      console.log(fromuser.friends[to],5555);
       //更新from user-friends表
       const chatId = [from, to].sort().join("");
       await ctx.service.user.updateUser(

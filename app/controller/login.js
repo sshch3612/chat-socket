@@ -96,22 +96,32 @@ class LoginController extends Controller {
     const { request, response, locals, service } = this.ctx;
     const { username } = locals;
     let user = null;
-    if (request.method === "POST") {
-      const { touser } = request.body;
-      user = await service.user.getUser(
-        { username: touser },
-        { password: 0, _id: 0 }
-      );
-    } else {
-      user = await service.user.getUser(
-        { username: username },
-        { password: 0, _id: 0 }
-      );
+    try {
+      if (request.method === "POST") {
+        const { touser } = request.body;
+        user = await service.user.getUser(
+          { username: touser },
+          { password: 0, _id: 0 }
+        );
+      } else {
+        user = await service.user.getUser(
+          { username: username },
+          { password: 0, _id: 0 }
+        );
+      }
+      if (!user) {
+        throw "该用户不存在";
+      }
+      response.body = {
+        code: 200,
+        message: user
+      };
+    } catch (error) {
+      response.body = {
+        code: 203,
+        message: error
+      };
     }
-    response.body = {
-      code: 200,
-      message: user
-    };
   }
 
   async updateAvatar() {
