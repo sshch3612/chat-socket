@@ -15,7 +15,9 @@ class UserService extends Service {
     const { username, password, phone, wxNumber, avatar } = option;
     const result = await this.ctx.model.User.create({
       username: username || null,
-      avatar: avatar || null,
+      avatar:
+        avatar ||
+        "https://upload.jianshu.io/users/upload_avatars/7072486/058e8c2c-2cf7-430b-b652-a223b7244c11",
       password: password || null,
       // qqCode:qqCode || null,
       phone: phone || null,
@@ -26,12 +28,13 @@ class UserService extends Service {
   }
   async updateUser(option, projection = {}) {
     try {
-      const result = await this.ctx.model.User.update(option, {
+      const result = await this.ctx.model.User.updateOne(option, {
         $set: projection
-      });  
+      });
+      console.log(3333333);
       return result;
     } catch (error) {
-      console.log(error,4444);   
+      console.log(error, 4444);
     }
   }
 

@@ -119,7 +119,11 @@ class LoginController extends Controller {
     const { username } = locals;
     const { avatar } = request.body;
     try {
-      const avatatUrl = await helper.fileUpload("/user/avatar", avatar);
+      const avatatUrl = await helper.fileUpload(
+        "/user/avatar",
+        avatar,
+        username
+      );
       await service.user.updateUser(
         {
           username: username
@@ -140,6 +144,16 @@ class LoginController extends Controller {
     } catch (error) {
       console.log(error);
     }
+  }
+  async userAvatar() {
+    const { request, response, params, service } = this.ctx;
+    const { userid } = params;
+    // 根据userid查询图片地址进行重定向
+    const avatarUrl = await service.user.getUser(
+      { username: userid },
+      { avatar: 1, _id: 0 }
+    );
+    this.ctx.redirect(avatarUrl.avatar);
   }
 }
 

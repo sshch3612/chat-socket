@@ -29,12 +29,36 @@ class HistoryMsgService extends Service {
   }
 
   async msgfind(option) {
-    const { from, to } = option;
+    const { from, to, number, page } = option;
     const chatId = [from, to].sort().join("");
-    const result = await this.ctx.model.HistoryMsg.find({
-      // $or: [{ from: from, to: to }, { from: to, to: from }]
-      chatid: chatId
-    }).sort({ date: 1 });
+    const limitNumber = number * page;
+    const result = await this.ctx.model.HistoryMsg.aggregate([
+      {
+        $match: {
+          chatid: chatId
+        }
+      },
+      {
+        $sort: {
+          date: -1
+        }
+      },
+      // { $skip: `${(page - 1) * number}` },
+      {
+        $limit: number * page
+      },
+      {
+        $sort: {
+          date: 1
+        }
+      }
+    ]);
+    // find({
+    //   // $or: [{ from: from, to: to }, { from: to, to: from }]
+    //   chatid: chatId
+    // })
+    //   .sort({ date: -1 })
+    //   .limit(10);
 
     return result;
   }
@@ -45,7 +69,7 @@ class HistoryMsgService extends Service {
     const result = await this.ctx.model.HistoryMsg.find(
       { from: from, to: to, isread: { [to]: 1 } },
       { isread: 1, _id: 0 }
-    ).count();
+    ).countDocuments();
 
     return result;
   }

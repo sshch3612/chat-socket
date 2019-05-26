@@ -9,16 +9,21 @@ class HistoryMsgController extends Controller {
   async historyMsg() {
     const { ctx, app } = this;
     const message = ctx.args[0];
-    const { from, to } = message;
+    const { from, to, number, page } = { number: 20, page: 1, ...message };
     const socketId = ctx.socket.id;
     try {
-      const result = await ctx.service.historyMsg.msgfind({ from, to });
+      const result = await ctx.service.historyMsg.msgfind({
+        from,
+        to,
+        number,
+        page
+      });
       await ctx.socket.nsp.sockets[socketId].emit("historyMsg", {
         code: "100002",
         message: result
       }); //发给指定的用户
     } catch (error) {
-      console.log(error)
+      console.log(error);
     }
   }
 }

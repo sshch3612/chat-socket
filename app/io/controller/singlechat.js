@@ -31,7 +31,6 @@ class SingleChatController extends Controller {
         message = reqdata["message"];
         break;
     }
-
     try {
       //给From发送回包
       await ctx.socket.nsp.sockets[socketId].emit("singlechat", {
@@ -116,6 +115,7 @@ class SingleChatController extends Controller {
           to: reqdata["to"]
         });
         //发送消息 count
+        console.log(toUser.socketid,9999);
         await ctx.socket.nsp.sockets[toUser.socketid].emit("singlechatOut", {
           from: reqdata["from"],
           type: reqdata["type"],
